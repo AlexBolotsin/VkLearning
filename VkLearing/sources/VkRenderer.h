@@ -15,6 +15,7 @@ public:
 	~VkRenderer();
 
 	int Init(GLFWwindow* window);
+	void Draw();
 	void Cleanup();
 
 private:
@@ -29,24 +30,43 @@ private:
 	VkQueue presentationQueue;
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapchain;
-	std::vector<SwapchainImage> swapChainImages;
 
+
+	std::vector<SwapchainImage> swapChainImages;
+	std::vector<VkFramebuffer> swapChainFrameBuffer;
+	std::vector<VkCommandBuffer> commandBuffers;
+
+	//pipeline
 	VkPipeline graphicsPipeline;
 	VkPipelineLayout pipelineLayout;
 	VkRenderPass renderPass;
 
+	//pools
+	VkCommandPool graphicsCommandPool;
+
+	//util
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
+
+	//synch
+	VkSemaphore imageAvailable;
+	VkSemaphore renderFinished;
 
 	void CreateInstance();
 
 	void RetrievePhysicalDevice();
-	void RetrieveLogicalDevice();
 	void CrateLogicalDevice();
 	void CreateSurface();
 	void CreateSwapChain();
 	void createRenderPass();
 	void createGraphicsPipeline();
+	void createFramebuffer();
+	void createGraphicsCommandPool();
+	void createCommandBuffer();
+	void createSynchronization();
+
+	// record function
+	void recordCommands();
 
 	//// Support
 	/// Checkers

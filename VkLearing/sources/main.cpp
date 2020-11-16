@@ -36,6 +36,7 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+		vkRenderer.Draw();
 	}
 	vkRenderer.Cleanup();
 
