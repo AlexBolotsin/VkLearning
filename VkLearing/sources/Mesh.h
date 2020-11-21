@@ -9,26 +9,31 @@ class Mesh
 {
 public:
 	Mesh() = default;
-	Mesh(VkPhysicalDevice newPhysDevice, VkDevice newDevice, std::vector<Vertex>* verticies);
+	Mesh(VkPhysicalDevice newPhysDevice, VkDevice newDevice, VkQueue transferQueue, VkCommandPool transferPool,
+		std::vector<Vertex>* verticies, std::vector<uint32_t>* indices);
 
 	~Mesh() = default;
-
 	
-	int getVertexCount() const { return vertexCount; };
+	uint32_t getVertexCount() const { return vertexCount; };
 	VkBuffer getVertexBuffer() const { return vertexBuffer; };
 
-	void destroyVertexBuffer();
+	void destroyBuffers();
 
+	VkBuffer getIndexBuffer() const { return indexBuffer; };
+	uint32_t getIndexCount() const { return indexCount; };
 private:
-	int vertexCount;
-
+	uint32_t vertexCount;
 	VkBuffer vertexBuffer;
-	VkPhysicalDevice physDevice;
-	VkDevice device;
 	VkDeviceMemory vertexBufferMem;
 
-	void createVertexBuffer(std::vector<Vertex>* vertecies);
+	uint32_t indexCount;
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMem;
 
-	uint32_t findMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags memFlags);
+	VkPhysicalDevice physDevice;
+	VkDevice device;
+
+	void createVertexBuffer(VkQueue transferQueue, VkCommandPool transferPool, std::vector<Vertex>* vertecies);
+	void createIndexBuffer(VkQueue transferQueue, VkCommandPool transferPool, std::vector<uint32_t>* indices);
 };
 

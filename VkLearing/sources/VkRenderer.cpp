@@ -22,27 +22,37 @@ int VkRenderer::Init(GLFWwindow* window)
 		CreateSurface();
 		RetrievePhysicalDevice();
 		CrateLogicalDevice();
-
-		std::vector<Vertex> meshVertecies = {
-			{{0.4, -0.4, 0.0}, {0.1, 0.9, 0.6}},
-			{{0.4, 0.4, 0.0}, {0.4, 0.0, 0.5}},
-			{{-0.4, 0.4, 0.0}, {0.7, 0.1, 0.4}},
-
-			{{-0.4, 0.4, 0.0}, {0.5, 0.1, 0.4}},
-			{{-0.4, -0.4, 0.0}, {0.3, 0.5, 0.1}},
-			{{0.4, -0.4, 0.0}, {0.1, 0.9, 0.6}}
-		};
-		firstMesh = Mesh(mainDevice.physicalDevice, mainDevice.logicalDevice, &meshVertecies);
-
 		CreateSwapChain();
 		createRenderPass();
 		createGraphicsPipeline();
 		createFramebuffer();
 		createGraphicsCommandPool();
+		//Vertex data
+		std::vector<Vertex> meshVertecies1 = {
+			{{-0.1, -0.4, 0.0}, {0.1, 0.9, 0.6}},  // 0
+			{{-0.1, 0.4, 0.0}, {0.4, 0.0, 0.5}},   // 1
+			{{-0.9, 0.4, 0.0}, {0.7, 0.1, 0.4}},  // 2
+			{{-0.9, -0.4, 0.0}, {0.3, 0.5, 0.1}}  // 3
+		};
+
+		std::vector<Vertex> meshVertecies2 = {
+			{{ 0.9, -0.4, 0.0}, {0.1, 0.9, 0.6}},  // 0
+			{{ 0.9, 0.4, 0.0}, {0.4, 0.0, 0.5}},   // 1
+			{{ 0.1, 0.4, 0.0}, {0.7, 0.1, 0.4}},  // 2
+			{{ 0.1, -0.4, 0.0}, {0.3, 0.5, 0.1}}  // 3
+		};
+		// Index data
+		std::vector<uint32_t> meshIndices =
+		{
+			0, 1, 2,
+			2, 3, 0
+		};
+		meshes = { Mesh(mainDevice.physicalDevice, mainDevice.logicalDevice, graphicsQueue, graphicsCommandPool, &meshVertecies1, &meshIndices),
+			Mesh(mainDevice.physicalDevice, mainDevice.logicalDevice, graphicsQueue, graphicsCommandPool, &meshVertecies2, &meshIndices) };
+
 		createCommandBuffer();
 		recordCommands();
 		createSynchronization();
-		
 	}
 	catch (const std::runtime_error& e)
 	{
@@ -77,7 +87,7 @@ void VkRenderer::Draw()
 
 	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, drawFences[currentFrame]) != VK_SUCCESS)
 	{
-		throw std::runtime_error("failed submit command bufer to queue");
+		throw std::runtime_error("failed submit command buffer to queue");
 	}
 	
 	// and signals whne it has finished rendering
@@ -102,7 +112,11 @@ void VkRenderer::Cleanup()
 {
 	vkDeviceWaitIdle(mainDevice.logicalDevice);
 
-	firstMesh.destroyVertexBuffer();
+	for (auto& mesh : meshes)
+	{
+		mesh.destroyBuffers();
+	}
+
 	for (int i = 0; i < MAX_FRAME_DRAWS; ++i)
 	{
 		vkDestroySemaphore(mainDevice.logicalDevice, imageAvailable[i], nullptr);
@@ -680,11 +694,16 @@ void VkRenderer::recordCommands()
 			{
 				vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-				VkBuffer vertexBuffer[] = { firstMesh.getVertexBuffer() };
-				VkDeviceSize offsets[] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffer, offsets);
+				for (auto& mesh : meshes)
+				{
+					VkBuffer vertexBuffer[] = { mesh.getVertexBuffer() };
+					VkDeviceSize offsets[] = { 0 };
+					vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffer, offsets);
 
-				vkCmdDraw(commandBuffers[i], firstMesh.getVertexCount(), 1, 0, 0);
+					vkCmdBindIndexBuffer(commandBuffers[i], mesh.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+					vkCmdDrawIndexed(commandBuffers[i], mesh.getIndexCount(), 1, 0, 0, 0);
+				}
 			}
 			vkCmdEndRenderPass(commandBuffers[i]);
 		}

@@ -24,7 +24,7 @@ private:
 	int currentFrame = 0;
 
 	// scene objects
-	Mesh firstMesh;
+	std::vector<Mesh> meshes;
 
 	VkInstance instance;
 	struct {
