@@ -7,6 +7,7 @@
 #include <set>
 
 #include "Utils.h"
+#include "Mesh.h"
 
 class VkRenderer
 {
@@ -21,6 +22,9 @@ public:
 private:
 	GLFWwindow* _window;
 	int currentFrame = 0;
+
+	// scene objects
+	Mesh firstMesh;
 
 	VkInstance instance;
 	struct {

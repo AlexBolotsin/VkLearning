@@ -20,9 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sources\main.cpp" />
+    <ClCompile Include="sources\Mesh.cpp" />
     <ClCompile Include="sources\VkRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="sources\Mesh.h" />
     <ClInclude Include="sources\Utils.h" />
     <ClInclude Include="sources\VkRenderer.h" />
   </ItemGroup>

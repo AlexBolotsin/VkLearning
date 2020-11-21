@@ -22,6 +22,18 @@ int VkRenderer::Init(GLFWwindow* window)
 		CreateSurface();
 		RetrievePhysicalDevice();
 		CrateLogicalDevice();
+
+		std::vector<Vertex> meshVertecies = {
+			{{0.4, -0.4, 0.0}, {0.1, 0.9, 0.6}},
+			{{0.4, 0.4, 0.0}, {0.4, 0.0, 0.5}},
+			{{-0.4, 0.4, 0.0}, {0.7, 0.1, 0.4}},
+
+			{{-0.4, 0.4, 0.0}, {0.5, 0.1, 0.4}},
+			{{-0.4, -0.4, 0.0}, {0.3, 0.5, 0.1}},
+			{{0.4, -0.4, 0.0}, {0.1, 0.9, 0.6}}
+		};
+		firstMesh = Mesh(mainDevice.physicalDevice, mainDevice.logicalDevice, &meshVertecies);
+
 		CreateSwapChain();
 		createRenderPass();
 		createGraphicsPipeline();
@@ -90,6 +102,7 @@ void VkRenderer::Cleanup()
 {
 	vkDeviceWaitIdle(mainDevice.logicalDevice);
 
+	firstMesh.destroyVertexBuffer();
 	for (int i = 0; i < MAX_FRAME_DRAWS; ++i)
 	{
 		vkDestroySemaphore(mainDevice.logicalDevice, imageAvailable[i], nullptr);
@@ -160,9 +173,7 @@ void VkRenderer::CreateInstance()
 	createInfo.enabledLayerCount = 0;
 	createInfo.ppEnabledLayerNames = nullptr;
 
-	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
-
-	if (result != VK_SUCCESS)
+	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create VK instance");
 	}
@@ -410,13 +421,29 @@ void VkRenderer::createGraphicsPipeline()
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo, fragmentShaderCreateInfo };
 
+	VkVertexInputBindingDescription bindingDesc = {};
+	bindingDesc.binding = 0;
+	bindingDesc.stride = sizeof(Vertex);
+	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	std::array<VkVertexInputAttributeDescription, 2> attrDesc = {};
+	attrDesc[0].binding = 0;
+	attrDesc[0].location = 0;
+	attrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDesc[0].offset = offsetof(Vertex, pos);
+
+	attrDesc[1].binding = 0;
+	attrDesc[1].location = 1;
+	attrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDesc[1].offset = offsetof(Vertex, col);
+
 	// vertex input
 	VkPipelineVertexInputStateCreateInfo vertextInputCreateInfo = {};
 	vertextInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertextInputCreateInfo.pVertexBindingDescriptions = nullptr;
-	vertextInputCreateInfo.vertexBindingDescriptionCount = 0;
-	vertextInputCreateInfo.pVertexAttributeDescriptions = nullptr;
-	vertextInputCreateInfo.vertexAttributeDescriptionCount = 0;
+	vertextInputCreateInfo.pVertexBindingDescriptions = &bindingDesc;
+	vertextInputCreateInfo.vertexBindingDescriptionCount = 1;
+	vertextInputCreateInfo.pVertexAttributeDescriptions = attrDesc.data();
+	vertextInputCreateInfo.vertexAttributeDescriptionCount = attrDesc.size();
 
 	// input assembly
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -640,27 +667,31 @@ void VkRenderer::recordCommands()
 
 	for (size_t i = 0; i < commandBuffers.size(); ++i)
 	{
+
 		renderpassBeginInfo.framebuffer = swapChainFrameBuffer[i];
 
-		// start recording commands to commad buffer
-		VkResult result = vkBeginCommandBuffer(commandBuffers[i], &bufferBeginCommand);
-		if (result != VK_SUCCESS)
+		// start recording commands to command buffer
+		if (vkBeginCommandBuffer(commandBuffers[i], &bufferBeginCommand) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to start recording a comand buffer");
+			throw std::runtime_error("failed to start recording a command buffer");
+		}
+		{
+			vkCmdBeginRenderPass(commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+			{
+				vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+				VkBuffer vertexBuffer[] = { firstMesh.getVertexBuffer() };
+				VkDeviceSize offsets[] = { 0 };
+				vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffer, offsets);
+
+				vkCmdDraw(commandBuffers[i], firstMesh.getVertexCount(), 1, 0, 0);
+			}
+			vkCmdEndRenderPass(commandBuffers[i]);
 		}
 
-		vkCmdBeginRenderPass(commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
-
-		vkCmdEndRenderPass(commandBuffers[i]);
-
-		result = vkEndCommandBuffer(commandBuffers[i]);
-		if (result != VK_SUCCESS)
+		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to stop recording a comand buffer");
+			throw std::runtime_error("failed to stop recording a command buffer");
 		}
 	}
 }
