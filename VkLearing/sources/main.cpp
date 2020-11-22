@@ -33,9 +33,24 @@ int main()
 		return error;
 	}
 
+	float angle = 0.0f;
+	float deltaTime = 0.0f;
+	float lastTime = 0.0f;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+
+		float now = glfwGetTime();
+		deltaTime = now - lastTime;
+		lastTime = now;
+
+		angle += 10.0f * deltaTime;
+
+		if (angle > 360.f) {
+			angle -= 360.f;
+		}
+		vkRenderer.updateModel(glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)));
 		vkRenderer.Draw();
 	}
 	vkRenderer.Cleanup();
