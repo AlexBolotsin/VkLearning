@@ -19,7 +19,7 @@ public:
 
 	int Init(GLFWwindow* window);
 
-	void updateModel(glm::mat4 newModel);
+	void updateModel(int modelIndex, glm::mat4 newModel);
 	void Draw();
 	void Cleanup();
 
@@ -31,12 +31,11 @@ private:
 	std::vector<Mesh> meshes;
 
 	// scene settings
-	struct MVP
+	struct UboViewProjection
 	{
 		glm::mat4 projection;
 		glm::mat4 view;
-		glm::mat4 model;
-	} mvp;
+	} uboViewProjection;
 
 	VkInstance instance;
 	struct {
@@ -58,8 +57,15 @@ private:
 	VkDescriptorPool descPool;
 	std::vector<VkDescriptorSet> descSets;
 
-	std::vector<VkBuffer> uniformBuffer;
-	std::vector<VkDeviceMemory> uniformBufferMem;
+	std::vector<VkBuffer> vpUniformBuffer;
+	std::vector<VkDeviceMemory> vpUniformBufferMem;
+
+	std::vector<VkBuffer> modelDynUniformBuffer;
+	std::vector<VkDeviceMemory> modelDynUniformBufferMem;
+
+	VkDeviceSize minUniformBufferOffset;
+	size_t modelUniformAllignment;
+	UboModel* modelTransferSpace;
 
 	//pipeline
 	VkPipeline graphicsPipeline;
@@ -85,7 +91,7 @@ private:
 	void CreateSurface();
 	void CreateSwapChain();
 	void createRenderPass();
-	void createDescriptoSetLayout();
+	void createDescriptorSetLayout();
 	void createGraphicsPipeline();
 	void createFramebuffer();
 	void createGraphicsCommandPool();
@@ -96,10 +102,12 @@ private:
 	void createDescriptorPool();
 	void createDescriptorSets();
 
-	void updateUniformBuffer(int index);
+	void updateUniformBuffers(int index);
 
 	// record function
 	void recordCommands();
+
+	void allocateDynamicBufferTransferSpace();
 
 	//// Support
 	/// Checkers

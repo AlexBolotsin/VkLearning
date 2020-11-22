@@ -5,6 +5,11 @@
 #include <vector>
 #include "Utils.h"
 
+struct UboModel {
+	glm::mat4 model;
+
+};
+
 class Mesh
 {
 public:
@@ -14,6 +19,9 @@ public:
 
 	~Mesh() = default;
 	
+	void setModel(glm::mat4 newModel) { uboModel.model = newModel; };
+	UboModel getModel() const { return uboModel; }
+
 	uint32_t getVertexCount() const { return vertexCount; };
 	VkBuffer getVertexBuffer() const { return vertexBuffer; };
 
@@ -22,6 +30,8 @@ public:
 	VkBuffer getIndexBuffer() const { return indexBuffer; };
 	uint32_t getIndexCount() const { return indexCount; };
 private:
+	UboModel uboModel;
+
 	uint32_t vertexCount;
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMem;

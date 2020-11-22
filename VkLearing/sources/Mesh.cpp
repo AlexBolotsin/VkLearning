@@ -9,6 +9,7 @@ Mesh::Mesh(VkPhysicalDevice newPhysDevice, VkDevice newDevice, VkQueue transferQ
 	device = newDevice;
 	createVertexBuffer(transferQueue, transferPool, verticies);
 	createIndexBuffer(transferQueue, transferPool, indices);
+	uboModel.model = glm::mat4(1.0f);
 }
 
 void Mesh::destroyBuffers()
