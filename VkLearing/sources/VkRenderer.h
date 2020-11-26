@@ -52,8 +52,15 @@ private:
 	std::vector<VkFramebuffer> swapChainFrameBuffer;
 	std::vector<VkCommandBuffer> commandBuffers;
 
+	VkImage depthBufferImage;
+	VkDeviceMemory depthBufferImageMem;
+	VkImageView depthBufferImageView;
+	VkFormat depthFormat;
+
 	// descriptors
 	VkDescriptorSetLayout descSetLayout;
+	VkPushConstantRange pushConstantRange;
+
 	VkDescriptorPool descPool;
 	std::vector<VkDescriptorSet> descSets;
 
@@ -63,9 +70,9 @@ private:
 	std::vector<VkBuffer> modelDynUniformBuffer;
 	std::vector<VkDeviceMemory> modelDynUniformBufferMem;
 
-	VkDeviceSize minUniformBufferOffset;
-	size_t modelUniformAllignment;
-	UboModel* modelTransferSpace;
+	//VkDeviceSize minUniformBufferOffset;
+	//size_t modelUniformAllignment;
+	//Model* modelTransferSpace;
 
 	//pipeline
 	VkPipeline graphicsPipeline;
@@ -92,7 +99,9 @@ private:
 	void CreateSwapChain();
 	void createRenderPass();
 	void createDescriptorSetLayout();
+	void createPushConstantRange();
 	void createGraphicsPipeline();
+	void createDepthBuffeImage();
 	void createFramebuffer();
 	void createGraphicsCommandPool();
 	void createCommandBuffer();
@@ -105,9 +114,9 @@ private:
 	void updateUniformBuffers(int index);
 
 	// record function
-	void recordCommands();
+	void recordCommands(uint32_t index);
 
-	void allocateDynamicBufferTransferSpace();
+	//void allocateDynamicBufferTransferSpace();
 
 	//// Support
 	/// Checkers
@@ -123,8 +132,10 @@ private:
 	VkSurfaceFormatKHR chooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
 	VkPresentModeKHR chooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
+	VkFormat chooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
 
 	/// create
+	VkImage createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags useFlags, VkMemoryPropertyFlags propFlags, VkDeviceMemory *imageMem);
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 };
