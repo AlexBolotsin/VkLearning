@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\Mesh.h" />
+    <ClInclude Include="sources\stb_image.h" />
     <ClInclude Include="sources\Utils.h" />
     <ClInclude Include="sources\VkRenderer.h" />
   </ItemGroup>

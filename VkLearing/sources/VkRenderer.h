@@ -8,6 +8,8 @@
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 
+#include "stb_image.h"
+
 #include "Utils.h"
 #include "Mesh.h"
 
@@ -69,6 +71,9 @@ private:
 
 	std::vector<VkBuffer> modelDynUniformBuffer;
 	std::vector<VkDeviceMemory> modelDynUniformBufferMem;
+
+	std::vector<VkImage> textureImages;
+	std::vector<VkDeviceMemory> textureImageMemory;
 
 	//VkDeviceSize minUniformBufferOffset;
 	//size_t modelUniformAllignment;
@@ -138,5 +143,10 @@ private:
 	VkImage createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags useFlags, VkMemoryPropertyFlags propFlags, VkDeviceMemory *imageMem);
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
+
+	int createTexture(std::string filename);
+
+	// loaders
+	stbi_uc* loadTextureFile(std::string filename, int* width, int* height, VkDeviceSize* imageSize);
 };
 

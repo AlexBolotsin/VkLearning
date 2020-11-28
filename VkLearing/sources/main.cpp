@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 #define FLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm.hpp>
 #include <mat4x4.hpp>
@@ -26,6 +27,9 @@ void initWindow(std::string wName = "Test Window", const int width = 800, const 
 int main()
 {
 	initWindow();
+
+	WCHAR path[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, path);
 
 	VkRenderer vkRenderer;
 	if (int error = vkRenderer.Init(window); error != 0)
